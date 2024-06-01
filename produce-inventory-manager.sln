@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.34916.146
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "produce-inventory-manager", "produce-inventory-manager.csproj", "{F7CD8067-27E7-46A1-AADA-B7D2B30CC441}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F7CD8067-27E7-46A1-AADA-B7D2B30CC441}.Debug|x64.ActiveCfg = Debug|x64
+		{F7CD8067-27E7-46A1-AADA-B7D2B30CC441}.Debug|x64.Build.0 = Debug|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1044BF54-55D5-43A9-A6B5-927D3974F28F}
+	EndGlobalSection
+EndGlobal
