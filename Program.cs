@@ -38,31 +38,8 @@ namespace IngameScript
         List<IMyAssembler> assemblers = new List<IMyAssembler>();
         List<IMyRefinery> refineries = new List<IMyRefinery>();
 
-        Color background_Color = new Color(0, 35, 45);
-        Color border_Color = new Color(0, 130, 255);
-
         int counter_InventoryManagement = 0, counter_AssemblerManagement = 0, counter_RefineryManagement = 0;
         double counter_Logo = 0;
-
-        public struct ItemList
-        {
-            public string Name;
-            public double Amount;
-        }
-        ItemList[] itemList_All;
-        ItemList[] itemList_Ore;
-        ItemList[] itemList_Ingot;
-        ItemList[] itemList_Component;
-        ItemList[] itemList_AmmoMagazine;
-
-
-        public struct ComparisonTable
-        {
-            public string Name;
-            public string BluePrintName;
-            public double Amount;
-            public bool HasItem;
-        }
 
         public Program()
         {
