@@ -1,7 +1,7 @@
 # inventory-manager
 Inventory management for LCD by Space Engineers Script.
 
-太空工程师，生产设备库存管理脚本， 自动将连接器、装配机精炼厂的产物，放进储物箱子。
+太空工程师，生产设备库存管理脚本， 自动将连接器、驾驶舱、装配机精炼厂的产物，放进储物箱子。
 
 # 来源
 
