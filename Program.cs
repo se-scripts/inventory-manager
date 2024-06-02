@@ -1,4 +1,5 @@
 ﻿using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI.Ingame;
 using Sandbox.ModAPI.Interfaces;
@@ -39,7 +40,7 @@ namespace IngameScript
         List<IMyAssembler> assemblers = new List<IMyAssembler>();
         List<IMyRefinery> refineries = new List<IMyRefinery>();
 
-        int counter_InventoryManagement = 0;
+        int counter_InventoryManagement = 0, counter_AssemblerManagement = 0, counter_RefineryManagement = 0;
         double counter_Logo = 0;
 
         public Program()
@@ -83,12 +84,22 @@ namespace IngameScript
         public void Assembler_to_CargoContainers()
         {
             Echo("Assembler_to_CargoContainers");
-            foreach (var assembler in assemblers) {
-                if (!assembler.IsProducing) {
+            for (int i = 0; i < 10; i++) {
+                int refineryCounter = counter_RefineryManagement * 10 + i;
+
+                if (refineryCounter >= refineries.Count)
+                {
+                    counter_RefineryManagement = 0;
+                    return;
+                }
+                var assembler = assemblers[refineryCounter];
+                if (!assembler.IsProducing)
+                {
                     Transfer_To_CargoContainers(assembler.InputInventory);
                 }
                 Transfer_To_CargoContainers(assembler.OutputInventory);
             }
+            counter_RefineryManagement++;
         }// Assembler_to_CargoContainers END!
 
         public void Transfer_Items(IMyInventory from, IMyInventory to)
@@ -116,14 +127,23 @@ namespace IngameScript
         public void Refinery_to_CargoContainers()
         {
             Echo("Refinery_to_CargoContainers");
-            foreach (var refinery in refineries) {
-                // transfer refinery input inventory items to cargos when refinery not producing.
+            for (int i = 0; i < 10; i++)
+            {
+                int refineryCounter = counter_RefineryManagement * 10 + i;
+
+                if (refineryCounter >= refineries.Count)
+                {
+                    counter_RefineryManagement = 0;
+                    return;
+                }
+                var refinery = refineries[refineryCounter];
                 if (!refinery.IsProducing)
                 {
                     Transfer_To_CargoContainers(refinery.InputInventory);
                 }
                 Transfer_To_CargoContainers(refinery.OutputInventory);
             }
+            counter_RefineryManagement++;
         }// Refinery_to_CargoContainers END!
 
         public void ProgrammableBlockScreen()
