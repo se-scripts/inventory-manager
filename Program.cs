@@ -39,8 +39,11 @@ namespace IngameScript
         List<IMyCargoContainer> cargoContainers = new List<IMyCargoContainer>();
         List<IMyAssembler> assemblers = new List<IMyAssembler>();
         List<IMyRefinery> refineries = new List<IMyRefinery>();
+        List<IMyShipConnector> connectors = new List<IMyShipConnector>();
+        List<IMyCryoChamber> cryoChambers = new List<IMyCryoChamber>();
+        List<IMyCockpit> cockpits = new List<IMyCockpit>();
 
-        int counter_InventoryManagement = 0, counter_AssemblerManagement = 0, counter_RefineryManagement = 0;
+        int counter_InventoryManagement = 0;
         double counter_Logo = 0;
 
         public Program()
@@ -50,6 +53,9 @@ namespace IngameScript
             GridTerminalSystem.GetBlocksOfType(cargoContainers, b => b.IsSameConstructAs(Me));
             GridTerminalSystem.GetBlocksOfType(assemblers, b => b.IsSameConstructAs(Me));
             GridTerminalSystem.GetBlocksOfType(refineries, b => b.IsSameConstructAs(Me) && !b.BlockDefinition.ToString().Contains("Shield"));
+            GridTerminalSystem.GetBlocksOfType(connectors, b => b.IsSameConstructAs(Me));
+            GridTerminalSystem.GetBlocksOfType(cryoChambers, b => b.IsSameConstructAs(Me));
+            GridTerminalSystem.GetBlocksOfType(cockpits, b => b.IsSameConstructAs(Me));
 
             ProgrammableBlockScreen();
         }
@@ -81,28 +87,19 @@ namespace IngameScript
             }
         }
 
-        public void Assembler_to_CargoContainers()
+        public void AssemblerToCargoContainers()
         {
-            Echo("Assembler_to_CargoContainers");
-            for (int i = 0; i < 10; i++) {
-                int refineryCounter = counter_RefineryManagement * 10 + i;
-
-                if (refineryCounter >= refineries.Count)
-                {
-                    counter_RefineryManagement = 0;
-                    return;
-                }
-                var assembler = assemblers[refineryCounter];
+            Echo("AssemblerToCargoContainers");
+            foreach (var assembler in assemblers) {
                 if (!assembler.IsProducing)
                 {
-                    Transfer_To_CargoContainers(assembler.InputInventory);
+                    TransferToCargoContainers(assembler.InputInventory);
                 }
-                Transfer_To_CargoContainers(assembler.OutputInventory);
+                TransferToCargoContainers(assembler.OutputInventory);
             }
-            counter_RefineryManagement++;
         }// Assembler_to_CargoContainers END!
 
-        public void Transfer_Items(IMyInventory from, IMyInventory to)
+        public void TransferItems(IMyInventory from, IMyInventory to)
         {
             if (from == null || to == null) { return; }
             if (from.ItemCount == 0) { return; }
@@ -115,36 +112,41 @@ namespace IngameScript
             }
         }
 
-        public void Transfer_To_CargoContainers(IMyInventory from) { 
+        public void TransferToCargoContainers(IMyInventory from) { 
             if (from == null ) { return; }
             if (from.ItemCount == 0) { return; }
             if (cargoContainers == null || cargoContainers.Count == 0) { return;}
             foreach (var cargo in cargoContainers) {
-                Transfer_Items(from, cargo.GetInventory());
+                TransferItems(from, cargo.GetInventory());
             }
         }
 
-        public void Refinery_to_CargoContainers()
+        public void RefineryToCargoContainers()
         {
-            Echo("Refinery_to_CargoContainers");
-            for (int i = 0; i < 10; i++)
-            {
-                int refineryCounter = counter_RefineryManagement * 10 + i;
-
-                if (refineryCounter >= refineries.Count)
-                {
-                    counter_RefineryManagement = 0;
-                    return;
-                }
-                var refinery = refineries[refineryCounter];
+            Echo("RefineryToCargoContainers");
+            foreach (var refinery in refineries) {
                 if (!refinery.IsProducing)
                 {
-                    Transfer_To_CargoContainers(refinery.InputInventory);
+                    TransferToCargoContainers(refinery.InputInventory);
                 }
-                Transfer_To_CargoContainers(refinery.OutputInventory);
+                TransferToCargoContainers(refinery.OutputInventory);
             }
-            counter_RefineryManagement++;
         }// Refinery_to_CargoContainers END!
+
+        public void ConnectorToCargoContainers()
+        {
+            Echo("ConnectorToCargoContainers");
+            foreach (var connector in connectors) {
+                TransferToCargoContainers(connector.GetInventory());
+            }
+        }
+
+        public void CockpitToCargoContainers() {
+            Echo("CockpitToCargoContainers");
+            foreach (var cockpit in cockpits) { 
+                TransferToCargoContainers(cockpit.GetInventory());
+            }
+        }
 
         public void ProgrammableBlockScreen()
         {
@@ -159,7 +161,7 @@ namespace IngameScript
 
             float x = 512 / 2, y1 = 205;
             DrawLogo(frame, x, y1, 200);
-            PanelWriteText(frame, "Production inventory management\nby Hi.James and li-guohao.", x, y1 + 110, 1f, TextAlignment.CENTER);
+            PanelWriteText(frame, "Inventory management\nby Hi.James and li-guohao.", x, y1 + 110, 1f, TextAlignment.CENTER);
 
             frame.Dispose();
 
@@ -224,15 +226,21 @@ namespace IngameScript
 
             DateTime beforDT = System.DateTime.Now;
 
-            if (counter_InventoryManagement++ >= 3) counter_InventoryManagement = 1;
+            if (counter_InventoryManagement++ >= 5) counter_InventoryManagement = 1;
 
             switch (counter_InventoryManagement)
             {
                 case 1:
-                    Assembler_to_CargoContainers();
+                    AssemblerToCargoContainers();
                     break;
                 case 2:
-                    Refinery_to_CargoContainers();
+                    RefineryToCargoContainers();
+                    break;
+                case 3:
+                    ConnectorToCargoContainers();
+                    break;
+                case 4:
+                    CockpitToCargoContainers();
                     break;
             }
 
