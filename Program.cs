@@ -113,12 +113,6 @@ namespace IngameScript
             }
         }
 
-        public double Calculate_VolumeRatio(IMyInventory inventory) {
-            double currentVolume_Double = ((double)inventory.CurrentVolume);
-            double maxVolume_Double = ((double)inventory.MaxVolume);
-            return currentVolume_Double / maxVolume_Double;
-        }
-
         public void Refinery_to_CargoContainers()
         {
             Echo("Refinery_to_CargoContainers");
