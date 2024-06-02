@@ -84,7 +84,6 @@ namespace IngameScript
         {
             Echo("Assembler_to_CargoContainers");
             foreach (var assembler in assemblers) {
-
                 if (!assembler.IsProducing) {
                     Transfer_To_CargoContainers(assembler.InputInventory);
                 }
