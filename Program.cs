@@ -204,7 +204,7 @@ namespace IngameScript
 
             DateTime beforDT = System.DateTime.Now;
 
-            if (counter_InventoryManagement++ >= 4) counter_InventoryManagement = 1;
+            if (counter_InventoryManagement++ >= 3) counter_InventoryManagement = 1;
 
             switch (counter_InventoryManagement)
             {
@@ -213,9 +213,6 @@ namespace IngameScript
                     break;
                 case 2:
                     Refinery_to_CargoContainers();
-                    break;
-                case 3:
-                    Assembler_to_CargoContainers();
                     break;
             }
 
