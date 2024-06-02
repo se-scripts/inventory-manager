@@ -39,7 +39,7 @@ namespace IngameScript
         List<IMyAssembler> assemblers = new List<IMyAssembler>();
         List<IMyRefinery> refineries = new List<IMyRefinery>();
 
-        int counter_InventoryManagement = 0, counter_AssemblerManagement = 0, counter_RefineryManagement = 0;
+        int counter_InventoryManagement = 0, counter_RefineryManagement = 0;
         double counter_Logo = 0;
 
         public Program()
@@ -83,79 +83,71 @@ namespace IngameScript
         public void Assembler_to_CargoContainers()
         {
             Echo("Assembler_to_CargoContainers");
+            foreach (var assembler in assemblers) {
+                double currentVolume_Double = ((double)assembler.OutputInventory.CurrentVolume);
+                double maxVolume_Double = ((double)assembler.OutputInventory.MaxVolume);
+                double volumeRatio_Double = currentVolume_Double / maxVolume_Double;
+                List<MyInventoryItem> items = new List<MyInventoryItem>();
 
-            for (int i = 0; i < 10; i++)
-            {
-                int assemblerCounter = counter_AssemblerManagement * 10 + i;
-
-                if (assemblerCounter >= assemblers.Count)
+                if (assembler.IsProducing)
                 {
-                    counter_AssemblerManagement = 0;
-                    return;
+                    if (volumeRatio_Double > 0)
+                    {
+                        assembler.OutputInventory.GetItems(items);
+                        foreach (var item in items)
+                        {
+                            foreach (var cargoContainer in cargoContainers)
+                            {
+                                if (!cargoContainer.GetInventory().CanPutItems) { continue; }
+                                if (!assembler.OutputInventory.CanTransferItemTo(cargoContainer.GetInventory(), item.Type)) { continue; }
+                                assembler.OutputInventory.TransferItemTo(cargoContainer.GetInventory(), item);
+                            }
+                        }
+                    }
+
                 }
                 else
                 {
-                    var assembler = assemblers[assemblerCounter];
-                    double currentVolume_Double = ((double)assembler.OutputInventory.CurrentVolume);
-                    double maxVolume_Double = ((double)assembler.OutputInventory.MaxVolume);
-                    double volumeRatio_Double = currentVolume_Double / maxVolume_Double;
+                    assembler.InputInventory.GetItems(items);
 
-                    if (assembler.IsProducing)
+                    if (assembler.InputInventory.ItemCount > 0)
                     {
-                        if (volumeRatio_Double > 0)
+                        foreach (var cargo in cargoContainers)
                         {
-                            List<MyInventoryItem> items = new List<MyInventoryItem>();
-                            assembler.OutputInventory.GetItems(items);
+                            var cargoIventory = cargo.GetInventory();
+                            if (cargoIventory.IsFull || !cargoIventory.CanPutItems) { continue; }
                             foreach (var item in items)
                             {
-                                foreach (var cargoContainer in cargoContainers) {
-                                    if (!cargoContainer.GetInventory().CanPutItems) { continue; }
-                                    if (!assembler.OutputInventory.CanTransferItemTo(cargoContainer.GetInventory(), item.Type)) { continue; }
-                                    assembler.OutputInventory.TransferItemTo(cargoContainer.GetInventory(), item);
-                                }
+                                if (!assembler.InputInventory.CanTransferItemTo(cargoIventory, item.Type)) { continue; }
+                                assembler.InputInventory.TransferItemTo(cargoIventory, item);
                             }
+
                         }
 
                     }
-                    else {
-                        List<MyInventoryItem> items = new List<MyInventoryItem>();
-                        assembler.InputInventory.GetItems(items);
 
-                        if (assembler.InputInventory.ItemCount > 0) {
-                            foreach (var cargo in cargoContainers)
+                    items.Clear();
+
+
+                    assembler.OutputInventory.GetItems(items);
+
+                    if (assembler.OutputInventory.ItemCount > 0)
+                    {
+                        foreach (var cargo in cargoContainers)
+                        {
+                            var cargoIventory = cargo.GetInventory();
+                            if (cargoIventory.IsFull || !cargoIventory.CanPutItems) { continue; }
+                            foreach (var item in items)
                             {
-                                var cargoIventory = cargo.GetInventory();
-                                if (cargoIventory.IsFull || !cargoIventory.CanPutItems) { continue; }
-                                foreach (var item in items)
-                                {
-                                    if (!assembler.InputInventory.CanTransferItemTo(cargoIventory, item.Type)) { continue; }
-                                    assembler.InputInventory.TransferItemTo(cargoIventory, item);
-                                }
-                                    
+                                if (!assembler.OutputInventory.CanTransferItemTo(cargoIventory, item.Type)) { continue; }
+                                assembler.OutputInventory.TransferItemTo(cargoIventory, item);
                             }
-
                         }
-                        items.Clear();
 
-
-                        assembler.OutputInventory.GetItems(items);
-
-                        if (assembler.OutputInventory.ItemCount > 0) {
-                            foreach (var cargo in cargoContainers) {
-                                var cargoIventory = cargo.GetInventory();
-                                if (cargoIventory.IsFull || !cargoIventory.CanPutItems) { continue; }
-                                foreach (var item in items) {
-                                    if (!assembler.OutputInventory.CanTransferItemTo(cargoIventory, item.Type)) { continue; }
-                                    assembler.OutputInventory.TransferItemTo(cargoIventory, item);
-                                }
-                            }
-
-                        }
                     }
                 }
-            }
 
-            counter_AssemblerManagement++;
+            }
         }// Assembler_to_CargoContainers END!
 
         public void ShowProductionQueue()
