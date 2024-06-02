@@ -39,7 +39,7 @@ namespace IngameScript
         List<IMyAssembler> assemblers = new List<IMyAssembler>();
         List<IMyRefinery> refineries = new List<IMyRefinery>();
 
-        int counter_InventoryManagement = 0, counter_RefineryManagement = 0;
+        int counter_InventoryManagement = 0;
         double counter_Logo = 0;
 
         public Program()
@@ -84,156 +84,53 @@ namespace IngameScript
         {
             Echo("Assembler_to_CargoContainers");
             foreach (var assembler in assemblers) {
-                double currentVolume_Double = ((double)assembler.OutputInventory.CurrentVolume);
-                double maxVolume_Double = ((double)assembler.OutputInventory.MaxVolume);
-                double volumeRatio_Double = currentVolume_Double / maxVolume_Double;
-                List<MyInventoryItem> items = new List<MyInventoryItem>();
 
-                if (assembler.IsProducing)
-                {
-                    if (volumeRatio_Double > 0)
-                    {
-                        assembler.OutputInventory.GetItems(items);
-                        foreach (var item in items)
-                        {
-                            foreach (var cargoContainer in cargoContainers)
-                            {
-                                if (!cargoContainer.GetInventory().CanPutItems) { continue; }
-                                if (!assembler.OutputInventory.CanTransferItemTo(cargoContainer.GetInventory(), item.Type)) { continue; }
-                                assembler.OutputInventory.TransferItemTo(cargoContainer.GetInventory(), item);
-                            }
-                        }
-                    }
-
+                if (!assembler.IsProducing) {
+                    Transfer_To_CargoContainers(assembler.InputInventory);
                 }
-                else
-                {
-                    assembler.InputInventory.GetItems(items);
-
-                    if (assembler.InputInventory.ItemCount > 0)
-                    {
-                        foreach (var cargo in cargoContainers)
-                        {
-                            var cargoIventory = cargo.GetInventory();
-                            if (cargoIventory.IsFull || !cargoIventory.CanPutItems) { continue; }
-                            foreach (var item in items)
-                            {
-                                if (!assembler.InputInventory.CanTransferItemTo(cargoIventory, item.Type)) { continue; }
-                                assembler.InputInventory.TransferItemTo(cargoIventory, item);
-                            }
-
-                        }
-
-                    }
-
-                    items.Clear();
-
-
-                    assembler.OutputInventory.GetItems(items);
-
-                    if (assembler.OutputInventory.ItemCount > 0)
-                    {
-                        foreach (var cargo in cargoContainers)
-                        {
-                            var cargoIventory = cargo.GetInventory();
-                            if (cargoIventory.IsFull || !cargoIventory.CanPutItems) { continue; }
-                            foreach (var item in items)
-                            {
-                                if (!assembler.OutputInventory.CanTransferItemTo(cargoIventory, item.Type)) { continue; }
-                                assembler.OutputInventory.TransferItemTo(cargoIventory, item);
-                            }
-                        }
-
-                    }
-                }
-
+                Transfer_To_CargoContainers(assembler.OutputInventory);
             }
         }// Assembler_to_CargoContainers END!
 
-        public void ShowProductionQueue()
+        public void Transfer_Items(IMyInventory from, IMyInventory to)
         {
-            StringBuilder str = new StringBuilder();
-            foreach (var assembler in assemblers)
-            {
-                List<MyProductionItem> productionitems = new List<MyProductionItem>();
-                assembler.GetQueue(productionitems);
-                foreach (var item1 in productionitems)
-                {
-                    str.Append($"{assembler.CustomName}:{item1.BlueprintId}:{item1.Amount}");
-                    str.Append("\n");
-                }
+            if (from == null || to == null) { return; }
+            if (from.ItemCount == 0) { return; }
+            if (to.IsFull || !to.CanPutItems) { return; }
+            List<MyInventoryItem> items = new List<MyInventoryItem>(from.ItemCount);
+            from.GetItems(items);
+            foreach (var item in items) {
+                if (!from.CanTransferItemTo(to, item.Type)) { continue; }
+                from.TransferItemTo(to, item);
             }
-            DebugLCD(str.ToString());
+        }
+
+        public void Transfer_To_CargoContainers(IMyInventory from) { 
+            if (from == null ) { return; }
+            if (from.ItemCount == 0) { return; }
+            if (cargoContainers == null || cargoContainers.Count == 0) { return;}
+            foreach (var cargo in cargoContainers) {
+                Transfer_Items(from, cargo.GetInventory());
+            }
+        }
+
+        public double Calculate_VolumeRatio(IMyInventory inventory) {
+            double currentVolume_Double = ((double)inventory.CurrentVolume);
+            double maxVolume_Double = ((double)inventory.MaxVolume);
+            return currentVolume_Double / maxVolume_Double;
         }
 
         public void Refinery_to_CargoContainers()
         {
             Echo("Refinery_to_CargoContainers");
-            for (int i = 0; i < 10; i++)
-            {
-                int refineryCounter = counter_RefineryManagement * 10 + i;
-
-                if (refineryCounter >= refineries.Count)
+            foreach (var refinery in refineries) {
+                // transfer refinery input inventory items to cargos when refinery not producing.
+                if (!refinery.IsProducing)
                 {
-                    counter_RefineryManagement = 0;
-                    return;
+                    Transfer_To_CargoContainers(refinery.InputInventory);
                 }
-                else
-                {
-                    if (refineries[refineryCounter].IsProducing == false)
-                    {
-                        foreach (var cargoContainer in cargoContainers)
-                        {
-                            List<MyInventoryItem> items1 = new List<MyInventoryItem>();
-                            refineries[refineryCounter].InputInventory.GetItems(items1);
-                            foreach (var item in items1)
-                            {
-                                bool tf = refineries[refineryCounter].InputInventory.TransferItemTo(cargoContainer.GetInventory(), item);
-                            }
-
-                            List<MyInventoryItem> items2 = new List<MyInventoryItem>();
-                            refineries[refineryCounter].OutputInventory.GetItems(items2);
-                            foreach (var item in items2)
-                            {
-                                bool tf = refineries[refineryCounter].OutputInventory.TransferItemTo(cargoContainer.GetInventory(), item);
-                            }
-
-                            items1.Clear();
-                            items2.Clear();
-                            refineries[refineryCounter].InputInventory.GetItems(items1);
-                            refineries[refineryCounter].OutputInventory.GetItems(items2);
-                            if (items1.Count < 1 && items2.Count < 1) break;
-                        }
-                    }
-                    else
-                    {
-                        foreach (var cargoContainer in cargoContainers)
-                        {
-                            //List<MyInventoryItem> items1 = new List<MyInventoryItem>();
-                            //refineries[refineryCounter].InputInventory.GetItems(items1);
-                            //foreach (var item in items1)
-                            //{
-                            //    string str = item.Type.ToString();
-                            //    if (str.IndexOf("_Ore") != -1)
-                            //    {
-                            //        bool tf = refineries[refineryCounter].InputInventory.TransferItemTo(cargoContainer.GetInventory(), item);
-                            //    }
-                            //}
-
-                            List<MyInventoryItem> items2 = new List<MyInventoryItem>();
-                            refineries[refineryCounter].OutputInventory.GetItems(items2);
-                            foreach (var item in items2)
-                            {
-                                bool tf = refineries[refineryCounter].OutputInventory.TransferItemTo(cargoContainer.GetInventory(), item);
-                            }
-                            items2.Clear();
-                            refineries[refineryCounter].OutputInventory.GetItems(items2);
-                            if (items2.Count < 1) break;
-                        }
-                    }
-                }
+                Transfer_To_CargoContainers(refinery.OutputInventory);
             }
-            counter_RefineryManagement++;
         }// Refinery_to_CargoContainers END!
 
         public void ProgrammableBlockScreen()
@@ -320,7 +217,6 @@ namespace IngameScript
             {
                 case 1:
                     Assembler_to_CargoContainers();
-                    ShowProductionQueue();
                     break;
                 case 2:
                     Refinery_to_CargoContainers();
