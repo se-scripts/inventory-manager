@@ -1,4 +1,5 @@
-﻿using Sandbox.Game.EntityComponents;
+﻿using Sandbox.Game.Entities;
+using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI.Ingame;
 using Sandbox.ModAPI.Interfaces;
 using SpaceEngineers.Game.ModAPI.Ingame;
@@ -99,47 +100,56 @@ namespace IngameScript
                     double maxVolume_Double = ((double)assembler.OutputInventory.MaxVolume);
                     double volumeRatio_Double = currentVolume_Double / maxVolume_Double;
 
-                    if (assemblers[assemblerCounter].IsProducing == false)
-                    {
-                        foreach (var cargoContainer in cargoContainers)
-                        {
-                            List<MyInventoryItem> items1 = new List<MyInventoryItem>();
-                            assemblers[assemblerCounter].InputInventory.GetItems(items1);
-                            foreach (var item in items1)
-                            {
-                                bool tf = assemblers[assemblerCounter].InputInventory.TransferItemTo(cargoContainer.GetInventory(), item);
-                            }
-
-                            List<MyInventoryItem> items2 = new List<MyInventoryItem>();
-                            assemblers[assemblerCounter].OutputInventory.GetItems(items2);
-                            foreach (var item in items2)
-                            {
-                                bool tf = assemblers[assemblerCounter].OutputInventory.TransferItemTo(cargoContainer.GetInventory(), item);
-                            }
-
-                            items1.Clear();
-                            items2.Clear();
-                            assemblers[assemblerCounter].InputInventory.GetItems(items1);
-                            assemblers[assemblerCounter].OutputInventory.GetItems(items2);
-                            if (items1.Count < 1 && items2.Count == 0) break;
-                        }
-                    }
-                    else
+                    if (assembler.IsProducing)
                     {
                         if (volumeRatio_Double > 0)
                         {
-                            foreach (var cargoContainer in cargoContainers)
+                            List<MyInventoryItem> items = new List<MyInventoryItem>();
+                            assembler.OutputInventory.GetItems(items);
+                            foreach (var item in items)
                             {
-                                List<MyInventoryItem> items3 = new List<MyInventoryItem>();
-                                assembler.OutputInventory.GetItems(items3);
-                                foreach (var item in items3)
-                                {
-                                    bool tf = assembler.OutputInventory.TransferItemTo(cargoContainer.GetInventory(), item);
+                                foreach (var cargoContainer in cargoContainers) {
+                                    if (!cargoContainer.GetInventory().CanPutItems) { continue; }
+                                    if (!assembler.OutputInventory.CanTransferItemTo(cargoContainer.GetInventory(), item.Type)) { continue; }
+                                    assembler.OutputInventory.TransferItemTo(cargoContainer.GetInventory(), item);
                                 }
-                                items3.Clear();
-                                assembler.OutputInventory.GetItems(items3);
-                                if (items3.Count < 1) break;
                             }
+                        }
+
+                    }
+                    else {
+                        List<MyInventoryItem> items = new List<MyInventoryItem>();
+                        assembler.InputInventory.GetItems(items);
+
+                        if (assembler.InputInventory.ItemCount > 0) {
+                            foreach (var cargo in cargoContainers)
+                            {
+                                var cargoIventory = cargo.GetInventory();
+                                if (cargoIventory.IsFull || !cargoIventory.CanPutItems) { continue; }
+                                foreach (var item in items)
+                                {
+                                    if (!assembler.InputInventory.CanTransferItemTo(cargoIventory, item.Type)) { continue; }
+                                    assembler.InputInventory.TransferItemTo(cargoIventory, item);
+                                }
+                                    
+                            }
+
+                        }
+                        items.Clear();
+
+
+                        assembler.OutputInventory.GetItems(items);
+
+                        if (assembler.OutputInventory.ItemCount > 0) {
+                            foreach (var cargo in cargoContainers) {
+                                var cargoIventory = cargo.GetInventory();
+                                if (cargoIventory.IsFull || !cargoIventory.CanPutItems) { continue; }
+                                foreach (var item in items) {
+                                    if (!assembler.OutputInventory.CanTransferItemTo(cargoIventory, item.Type)) { continue; }
+                                    assembler.OutputInventory.TransferItemTo(cargoIventory, item);
+                                }
+                            }
+
                         }
                     }
                 }
