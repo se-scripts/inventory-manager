@@ -35,7 +35,7 @@ namespace IngameScript
         * @author [Hi.James](https://space.bilibili.com/368005035)
         * @author [li-guohao](https://github.com/li-guohao)
         */
-        const string version = "1.0.0";
+        const string version = "1.0.1";
         MyIni _ini = new MyIni();
 
         List<IMyCargoContainer> cargoContainers = new List<IMyCargoContainer>();
@@ -163,7 +163,7 @@ namespace IngameScript
 
             float x = 512 / 2, y1 = 205;
             DrawLogo(frame, x, y1, 200);
-            PanelWriteText(frame, "Inventory management\nby Hi.James and li-guohao With version " + version, x, y1 + 110, 1f, TextAlignment.CENTER);
+            PanelWriteText(frame, "Inventory management\nby Hi.James and li-guohao\nWith version " + version, x, y1 + 110, 1f, TextAlignment.CENTER);
 
             frame.Dispose();
 
